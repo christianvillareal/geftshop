@@ -2,12 +2,13 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Geftshop</title>
-  </head>
-  <body>
+    <title>Geftshop Redirect</title>
     <script type="text/javascript">
-      const path = window.location.pathname.replace('/geftshop', '');
-      window.location.replace(`/geftshop/#${path}`);
+      // Start the redirect from the correct base path.
+      const base = '/geftshop'; 
+      const path = window.location.pathname.replace(base, '');
+      window.location.replace(`${base}/index.html?path=${encodeURIComponent(path)}`);
     </script>
-  </body>
+  </head>
+  <body></body>
 </html>
