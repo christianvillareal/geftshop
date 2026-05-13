@@ -1,23 +1,20 @@
 {
   "files": {
-    "main.css": "/geftshop/static/css/main.e8e33d73.css",
-    "main.js": "/geftshop/static/js/main.3bc90748.js",
+    "main.css": "/geftshop/static/css/main.d9e302e6.css",
+    "main.js": "/geftshop/static/js/main.87d38031.js",
     "static/media/testimonial-bg.png": "/geftshop/static/media/testimonial-bg.797d68ac53d4e96b4dbc.png",
     "static/media/geft-about.png": "/geftshop/static/media/geft-about.cc3cb2c9e5d2b6f6678d.png",
-    "static/media/slide-02.jpg": "/geftshop/static/media/slide-02.a10a611ea4d9b507e627.jpg",
-    "static/media/slide-03.jpg": "/geftshop/static/media/slide-03.6aef4fa7489cb76634df.jpg",
-    "static/media/slide-01.jpg": "/geftshop/static/media/slide-01.b43a835eddd19ee88d99.jpg",
     "static/media/dress.png": "/geftshop/static/media/dress.c7abcbcffbf2ee8a1792.png",
     "static/media/gcash.png": "/geftshop/static/media/gcash.430bb4f9b6602aa6914a.png",
     "static/media/visa.png": "/geftshop/static/media/visa.413d2e8ecf23bfd3477f.png",
     "static/media/logo.png": "/geftshop/static/media/logo.5ee408bc0ca1cef55646.png",
     "static/media/amex.png": "/geftshop/static/media/amex.debed5ef12cbe0e8bfe9.png",
     "index.html": "/geftshop/index.html",
-    "main.e8e33d73.css.map": "/geftshop/static/css/main.e8e33d73.css.map",
-    "main.3bc90748.js.map": "/geftshop/static/js/main.3bc90748.js.map"
+    "main.d9e302e6.css.map": "/geftshop/static/css/main.d9e302e6.css.map",
+    "main.87d38031.js.map": "/geftshop/static/js/main.87d38031.js.map"
   },
   "entrypoints": [
-    "static/css/main.e8e33d73.css",
-    "static/js/main.3bc90748.js"
+    "static/css/main.d9e302e6.css",
+    "static/js/main.87d38031.js"
   ]
 }
