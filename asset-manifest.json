@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/geftshop/static/css/main.d9e302e6.css",
-    "main.js": "/geftshop/static/js/main.87d38031.js",
+    "main.css": "/geftshop/static/css/main.549a8516.css",
+    "main.js": "/geftshop/static/js/main.bcfbc0dd.js",
     "static/media/testimonial-bg.png": "/geftshop/static/media/testimonial-bg.797d68ac53d4e96b4dbc.png",
     "static/media/geft-about.png": "/geftshop/static/media/geft-about.cc3cb2c9e5d2b6f6678d.png",
     "static/media/dress.png": "/geftshop/static/media/dress.c7abcbcffbf2ee8a1792.png",
@@ -10,11 +10,11 @@
     "static/media/logo.png": "/geftshop/static/media/logo.5ee408bc0ca1cef55646.png",
     "static/media/amex.png": "/geftshop/static/media/amex.debed5ef12cbe0e8bfe9.png",
     "index.html": "/geftshop/index.html",
-    "main.d9e302e6.css.map": "/geftshop/static/css/main.d9e302e6.css.map",
-    "main.87d38031.js.map": "/geftshop/static/js/main.87d38031.js.map"
+    "main.549a8516.css.map": "/geftshop/static/css/main.549a8516.css.map",
+    "main.bcfbc0dd.js.map": "/geftshop/static/js/main.bcfbc0dd.js.map"
   },
   "entrypoints": [
-    "static/css/main.d9e302e6.css",
-    "static/js/main.87d38031.js"
+    "static/css/main.549a8516.css",
+    "static/js/main.bcfbc0dd.js"
   ]
 }
