@@ -48,7 +48,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
   <button
     onClick={() => {
       localStorage.removeItem('adminAuth');
-      window.location.href = '/admin/login';
+      window.location.href = '/geftshop/#/admin/login';
     }}
     className="flex items-center gap-3 text-gray-700 hover:text-red-600 transition w-full"
   >

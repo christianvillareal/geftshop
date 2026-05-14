@@ -1,28 +1,28 @@
 import React, { useState } from 'react';
-import { logo, cartIcon } from '../assets';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import { logo, cartIcon } from '../assets';
 
 const Navbar = () => {
-  
+  const { getCartCount } = useCart();
+  const cartItemCount = getCartCount();
+
   const navItems = [
     { name: 'HOME', path: '/' },
-    { name: 'PRODUCTS', path: '/products' },      // adjust when products page exists
-    { name: 'REVIEWS', path: '/testimonialpage' },        // adjust when reviews page exists
-    { name: 'CONTACT US', path: '/contact' },     // adjust when contact page exists
+    { name: 'PRODUCTS', path: '/products' },
+    { name: 'REVIEWS', path: '/testimonialpage' },
+    { name: 'CONTACT US', path: '/contact' },
   ];
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const cartItemCount = 3;
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-30">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Left: Logo links to home */}
         <Link to="/">
-          <img src={logo} alt="GEFT SHOP" className="h-20 w-auto cursor-pointer" />
+          <img src={logo} alt="GEFT SHOP" className="h-10 sm:h-20 w-auto cursor-pointer" />
         </Link>
 
-        {/* Desktop Navigation Links */}
         <ul className="hidden md:flex space-x-2 lg:space-x-4">
           {navItems.map((item) => (
             <li key={item.name}>
@@ -36,9 +36,7 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* Right side: Cart Icon + Mobile Menu Button */}
         <div className="flex items-center space-x-4">
-          {/* Cart Icon with Badge */}
           <Link to="/cart" className="relative cursor-pointer">
             <img src={cartIcon} alt="Cart" className="h-10 w-auto" />
             {cartItemCount > 0 && (
@@ -48,7 +46,6 @@ const Navbar = () => {
             )}
           </Link>
 
-          {/* Mobile Menu Button (hamburger) */}
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -66,7 +63,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Panel */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 py-4 px-4">
           <ul className="flex flex-col space-y-3">

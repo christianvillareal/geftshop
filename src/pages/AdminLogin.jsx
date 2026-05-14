@@ -9,6 +9,7 @@ const AdminLogin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     // Hardcoded credentials
     if (username === 'admin' && password === 'admin') {
       localStorage.setItem('adminAuth', 'true');
@@ -60,9 +61,7 @@ const AdminLogin = () => {
             Sign In
           </button>
         </form>
-        <div className="bg-gray-50 px-8 py-4 text-center text-xs text-gray-500 border-t">
-          Demo credentials: admin / admin
-        </div>
+        
       </div>
     </div>
   );

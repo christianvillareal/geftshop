@@ -2,31 +2,51 @@ import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
 import FilterSection from '../components/FilterSection';
 import Pagination from '../components/Pagination';
-import { products } from '../data/products';
+import { fetchProducts } from '../services/api';
 
 const Products = () => {
-  // Filter states
-  const [sizeFilter, setSizeFilter] = useState('');
-  const [colorFilter, setColorFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // adjust as needed
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Filter products
-  const filteredProducts = products.filter(product => {
+  const [sizeFilter, setSizeFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await fetchProducts();
+        // Sort: in-stock first, sold-out last
+        const sorted = [...data].sort((a, b) => {
+          if (a.stock > 0 && b.stock === 0) return -1;
+          if (a.stock === 0 && b.stock > 0) return 1;
+          // if same stock status, keep by newest id (higher id = newer)
+          return b.id - a.id;
+        });
+        setAllProducts(sorted);
+      } catch (err) {
+        console.error('Failed to load products:', err);
+        setError('Could not load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  // Filter and pagination logic (unchanged)
+  const filteredProducts = allProducts.filter(product => {
     const matchesSize = sizeFilter ? product.size === sizeFilter : true;
-    const matchesColor = colorFilter ? product.color.toLowerCase().includes(colorFilter.toLowerCase()) : true;
     const matchesSearch = searchQuery ? product.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
-    return matchesSize && matchesColor && matchesSearch;
+    return matchesSize && matchesSearch;
   });
 
-  // Reset page to 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [sizeFilter, colorFilter, searchQuery]);
+  }, [sizeFilter, searchQuery]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
@@ -36,18 +56,18 @@ const Products = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  if (loading) return <div className="bg-gray-50 min-h-screen flex items-center justify-center">Loading products...</div>;
+  if (error) return <div className="bg-gray-50 min-h-screen flex items-center justify-center text-red-600">{error}</div>;
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="container mx-auto px-4 py-12">
         <FilterSection
           sizeFilter={sizeFilter}
           setSizeFilter={setSizeFilter}
-          colorFilter={colorFilter}
-          setColorFilter={setColorFilter}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
-
         {filteredProducts.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <div className="text-gray-500 text-lg mb-2">No products found</div>
