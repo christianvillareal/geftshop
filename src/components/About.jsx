@@ -47,13 +47,7 @@ const About = () => {
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <a 
-                href="#" 
-                className="bg-lime-600 hover:bg-lime-700 text-white font-medium py-2 px-6 rounded-full transition text-center"
-              >
-                Learn More
-              </a>
-              <a 
-                href="#" 
+                href="/geftshop#/contact/" 
                 className="border-2 border-lime-600 text-lime-600 hover:bg-lime-600 hover:text-white font-medium py-2 px-6 rounded-full transition text-center"
               >
                 CONTACT US

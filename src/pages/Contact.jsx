@@ -22,7 +22,7 @@ const Contact = () => {
         setStatus({ type: '', message: '' });
 
         try {
-            const response = await fetch('http://localhost:5000/send-email', {
+            const response = await fetch('https://geftshop-backend.onrender.com/api/contact', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
@@ -32,7 +32,7 @@ const Contact = () => {
                 setStatus({ type: 'success', message: 'Message sent successfully! We\'ll get back to you soon.' });
                 setFormData({ user_name: '', user_email: '', subject: '', message: '' });
             } else {
-                setStatus({ type: 'error', message: data.message || 'Failed to send message.' });
+                setStatus({ type: 'error', message: data.error || 'Failed to send message.' });
             }
         } catch (error) {
             setStatus({ type: 'error', message: 'Network error. Please try again.' });

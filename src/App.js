@@ -1,4 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react'; // missing imports
+import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Products from './pages/Products';
@@ -14,27 +16,42 @@ import Orders from './pages/Orders';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import ProtectedRoute from './components/ProtectedRoute';
+import Terms from './pages/Terms';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
+// Custom hook to get hash path without leading '#'
+const useHashPath = () => {
+  const [hashPath, setHashPath] = useState('');
+  useEffect(() => {
+    const updateHash = () => {
+      setHashPath(window.location.hash.replace('#', '') || '/');
+    };
+    window.addEventListener('hashchange', updateHash);
+    updateHash();
+    return () => window.removeEventListener('hashchange', updateHash);
+  }, []);
+  return hashPath;
+};
 
 function AppContent() {
-  const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
+  const hashPath = useHashPath();
+  const isAdminRoute = hashPath.startsWith('/admin');
 
   return (
     <>
       {!isAdminRoute && <Navbar />}
       <Routes>
-        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/testimonialpage" element={<TestimonialPage />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} /> 
 
-        {/* Admin Login (no layout, no protection) */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Protected Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -43,6 +60,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="manage-products" element={<AdminManageProduct />} />
@@ -56,9 +74,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <CartProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </CartProvider>
   );
 }
 

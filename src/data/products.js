@@ -110,8 +110,8 @@ export const products = [
   },
   {
     id: 8,
-    name: 'Leather Ankle Boots2',
-    price: 850,
+    name: 'Pinky',
+    price: 200,
     originalPrice: null,
     description: 'Genuine leather ankle boots with non-slip sole.',
     dressCode: 'LAB01',
@@ -122,5 +122,5 @@ export const products = [
     reviewCount: 23,
     stock: 0,
     image: [imageSlide1, imageSlide2, imageSlide3],
-  },
+  }
 ];
