@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Cropper from 'react-easy-crop';
 import { createProduct, updateProduct, fetchProduct } from '../services/api';
@@ -36,9 +36,11 @@ const AdminManageProduct = () => {
     length: '',
     waist: '',
     asianSize: '',
-    imageUrls: [],
-    newImages: [],
   });
+
+  const [imageItems, setImageItems] = useState([]);
+  const [draggingKey, setDraggingKey] = useState(null);
+  const imageItemsRef = useRef([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState({ open: false, title: '', message: '', type: 'info' });
@@ -46,6 +48,7 @@ const AdminManageProduct = () => {
   // Cropping states
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [currentCroppingFile, setCurrentCroppingFile] = useState(null);
+  const [cropImageSrc, setCropImageSrc] = useState('');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -62,6 +65,11 @@ const AdminManageProduct = () => {
       fetchProduct(productId)
         .then(product => {
           if (product) {
+            const existing = (product.imageUrls || []).map((url, idx) => ({
+              key: `existing-${idx}-${url}`,
+              kind: 'existing',
+              url,
+            }));
             setFormData({
               name: product.name || '',
               description: product.description || '',
@@ -72,14 +80,41 @@ const AdminManageProduct = () => {
               length: product.length !== undefined ? product.length : '',
               waist: product.waist !== undefined ? product.waist : '',
               asianSize: product.asianSize || '',
-              imageUrls: product.imageUrls || [],
-              newImages: [],
             });
+            setImageItems(existing);
           }
         })
         .catch(err => console.error('Failed to load product:', err));
     }
   }, [isEditMode, productId]);
+
+  useEffect(() => {
+    imageItemsRef.current = imageItems;
+  }, [imageItems]);
+
+  useEffect(() => {
+    if (!cropModalOpen || !currentCroppingFile) {
+      setCropImageSrc('');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(currentCroppingFile);
+    setCropImageSrc(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [cropModalOpen, currentCroppingFile]);
+
+  useEffect(() => {
+    return () => {
+      for (const item of imageItemsRef.current) {
+        if (item.kind === 'new' && item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      }
+    };
+  }, []);
 
   // Auto‑calculate Asian Size
   useEffect(() => {
@@ -133,21 +168,23 @@ const AdminManageProduct = () => {
     const objectUrl = URL.createObjectURL(currentCroppingFile);
     const croppedBlob = await getCroppedImg(objectUrl, croppedAreaPixels);
     URL.revokeObjectURL(objectUrl);
-    setFormData(prev => ({
+    const previewUrl = URL.createObjectURL(croppedBlob);
+    setImageItems(prev => ([
       ...prev,
-      newImages: [...prev.newImages, croppedBlob]
-    }));
+      { key: `new-${Date.now()}-${Math.random().toString(16).slice(2)}`, kind: 'new', file: croppedBlob, previewUrl },
+    ]));
     const remaining = pendingFiles.slice(1);
     setPendingFiles(remaining);
-    setCropModalOpen(false);
-    setCurrentCroppingFile(null);
-    if (remaining.length > 0) {
-      setCurrentCroppingFile(remaining[0]);
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
+    if (remaining.length === 0) {
+      setCropModalOpen(false);
+      setCurrentCroppingFile(null);
       setCroppedAreaPixels(null);
-      setCropModalOpen(true);
+      return;
     }
+    setCurrentCroppingFile(remaining[0]);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
   };
 
   const handleCancelCrop = () => {
@@ -158,35 +195,53 @@ const AdminManageProduct = () => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const totalAfterAdd = formData.imageUrls.length + formData.newImages.length + files.length;
+    e.target.value = '';
+    const totalAfterAdd = imageItems.length + files.length;
     if (totalAfterAdd > 8) {
       showAlert('Image Limit', 'You can only add up to 8 images total.', 'warning');
       return;
     }
-    setPendingFiles(prev => [...prev, ...files]);
-    if (!cropModalOpen && pendingFiles.length === 0) {
-      setCurrentCroppingFile(files[0]);
-      setCropModalOpen(true);
-    }
+    setPendingFiles((prev) => {
+      const combined = [...prev, ...files];
+      if (!cropModalOpen && !currentCroppingFile && combined.length > 0) {
+        setCurrentCroppingFile(combined[0]);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setCroppedAreaPixels(null);
+        setCropModalOpen(true);
+      }
+      return combined;
+    });
   };
 
-  const removeExistingImage = (indexToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrls: prev.imageUrls.filter((_, idx) => idx !== indexToRemove)
-    }));
+  const removeImageItem = (keyToRemove) => {
+    setImageItems((prev) => {
+      const item = prev.find((i) => i.key === keyToRemove);
+      if (item?.kind === 'new' && item.previewUrl) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+      return prev.filter((i) => i.key !== keyToRemove);
+    });
   };
 
-  const removeNewImage = (indexToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      newImages: prev.newImages.filter((_, idx) => idx !== indexToRemove)
-    }));
+  const moveImageItem = (fromKey, toKey) => {
+    if (!fromKey || !toKey || fromKey === toKey) return;
+
+    setImageItems((prev) => {
+      const fromIndex = prev.findIndex((i) => i.key === fromKey);
+      const toIndex = prev.findIndex((i) => i.key === toKey);
+      if (fromIndex === -1 || toIndex === -1) return prev;
+
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const totalImages = formData.imageUrls.length + formData.newImages.length;
+    const totalImages = imageItems.length;
     if (totalImages > 8) {
       showAlert('Image Limit', `Maximum 8 images allowed. You have ${totalImages} images.`, 'warning');
       return;
@@ -204,12 +259,20 @@ const AdminManageProduct = () => {
     data.append('waist', formData.waist);
     data.append('asianSize', formData.asianSize);
 
-    if (formData.imageUrls.length > 0) {
-      data.append('existingImages', JSON.stringify(formData.imageUrls));
+    const existingUrls = imageItems.filter((i) => i.kind === 'existing').map((i) => i.url);
+    if (existingUrls.length > 0) {
+      data.append('existingImages', JSON.stringify(existingUrls));
     }
-    formData.newImages.forEach(file => {
-      data.append('images', file);
+
+    let newIndex = 0;
+    const imageOrder = imageItems.map((item) => {
+      if (item.kind === 'existing') return { type: 'existing', url: item.url };
+      const idx = newIndex;
+      newIndex += 1;
+      data.append('images', item.file);
+      return { type: 'new', index: idx };
     });
+    data.append('imageOrder', JSON.stringify(imageOrder));
 
     try {
       if (isEditMode) {
@@ -228,7 +291,7 @@ const AdminManageProduct = () => {
     }
   };
 
-  const totalImages = formData.imageUrls.length + formData.newImages.length;
+  const totalImages = imageItems.length;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -332,16 +395,36 @@ const AdminManageProduct = () => {
           <p className="text-xs text-gray-400 mt-2">Max 8 images total. Each image will be cropped to 4:5 after selection.</p>
           <p className="text-xs text-lime-600 mt-1">Current: {totalImages} / 8</p>
 
-          {formData.imageUrls.length > 0 && (
+          {imageItems.length > 0 && (
             <div className="mt-4">
-              <p className="text-xs text-gray-500 mb-2">Current images:</p>
+              <p className="text-xs text-gray-500 mb-2">Drag images to reorder (first = main image):</p>
               <div className="grid grid-cols-4 gap-2">
-                {formData.imageUrls.map((url, idx) => (
-                  <div key={idx} className="relative group">
-                    <img src={url} alt={`existing ${idx}`} className="w-full aspect-[4/5] object-cover rounded border" />
+                {imageItems.map((item, idx) => (
+                  <div
+                    key={item.key}
+                    className={`relative group ${draggingKey === item.key ? 'opacity-60' : ''} hover:cursor-grab active:cursor-grabbing`}
+                    draggable
+                    onDragStart={() => setDraggingKey(item.key)}
+                    onDragOver={(ev) => ev.preventDefault()}
+                    onDrop={() => {
+                      moveImageItem(draggingKey, item.key);
+                      setDraggingKey(null);
+                    }}
+                    onDragEnd={() => setDraggingKey(null)}
+                  >
+                    <img
+                      src={item.kind === 'existing' ? item.url : item.previewUrl}
+                      alt={`img ${idx}`}
+                      className="w-full aspect-[4/5] object-cover rounded border"
+                    />
+                    {idx === 0 && (
+                      <div className="absolute bottom-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded">
+                        Main
+                      </div>
+                    )}
                     <button
                       type="button"
-                      onClick={() => removeExistingImage(idx)}
+                      onClick={() => removeImageItem(item.key)}
                       className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
                     >
                       ×
@@ -352,27 +435,7 @@ const AdminManageProduct = () => {
             </div>
           )}
 
-          {formData.newImages.length > 0 && (
-            <div className="mt-4">
-              <p className="text-xs text-gray-500 mb-2">New images (already cropped):</p>
-              <div className="grid grid-cols-4 gap-2">
-                {formData.newImages.map((file, idx) => (
-                  <div key={idx} className="relative group">
-                    <img src={URL.createObjectURL(file)} alt={`preview ${idx}`} className="w-full aspect-[4/5] object-cover rounded border" />
-                    <button
-                      type="button"
-                      onClick={() => removeNewImage(idx)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {formData.imageUrls.length === 0 && formData.newImages.length === 0 && (
+          {imageItems.length === 0 && (
             <div className="mt-4 text-center text-gray-400 text-sm py-4 border-2 border-dashed rounded-md">No images yet</div>
           )}
         </div>
@@ -385,7 +448,7 @@ const AdminManageProduct = () => {
             <h3 className="text-lg font-semibold mb-4">Crop Image to 4:5 Portrait</h3>
             <div className="relative h-64 w-full bg-gray-100 rounded overflow-hidden">
               <Cropper
-                image={URL.createObjectURL(currentCroppingFile)}
+                image={cropImageSrc}
                 crop={crop}
                 zoom={zoom}
                 aspect={4 / 5}
