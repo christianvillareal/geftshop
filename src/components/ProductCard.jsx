@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import { Dress } from '../assets';
+import { optimizeCloudinaryUrl } from '../utils/imageOptimizer';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -17,6 +18,9 @@ const ProductCard = ({ id, name, price, description, stock, imageUrls }) => {
     navigate(`/product/${id}`);
   };
 
+  // Optimize each image URL for display (400px width, auto format & quality)
+  const optimizedImages = images.map(img => optimizeCloudinaryUrl(img, 400));
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow duration-300">
       <div className="relative mb-4">
@@ -30,21 +34,23 @@ const ProductCard = ({ id, name, price, description, stock, imageUrls }) => {
               loop
               className="product-card-swiper w-full h-full"
             >
-              {images.map((img, idx) => (
+              {optimizedImages.map((img, idx) => (
                 <SwiperSlide key={idx}>
                   <img
                     src={img}
                     alt={`${name} - ${idx + 1}`}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </SwiperSlide>
               ))}
             </Swiper>
           ) : (
             <img
-              src={images[0]}
+              src={optimizedImages[0]}
               alt={name}
               className="w-full h-full object-cover"
+              loading="lazy"
             />
           )}
         </div>
