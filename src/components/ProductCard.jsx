@@ -1,58 +1,31 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
 import { Dress } from '../assets';
 import { optimizeCloudinaryUrl } from '../utils/imageOptimizer';
-
-import 'swiper/css';
-import 'swiper/css/pagination';
 
 const ProductCard = ({ id, name, price, description, stock, imageUrls }) => {
   const isSoldOut = stock === 0;
   const navigate = useNavigate();
   const images = imageUrls && imageUrls.length > 0 ? imageUrls : [Dress];
-  const hasMultiple = images.length > 1;
 
   const handleViewDetails = () => {
     navigate(`/product/${id}`);
   };
 
-  // Optimize each image URL for display (400px width, auto format & quality)
-  const optimizedImages = images.map(img => optimizeCloudinaryUrl(img, 400));
+  // Product grids should load one optimized thumbnail instead of every gallery image.
+  const primaryImage = optimizeCloudinaryUrl(images[0], 400);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow duration-300">
       <div className="relative mb-4">
         <div className="bg-gray-100 rounded-md overflow-hidden aspect-[4/5]">
-          {hasMultiple ? (
-            <Swiper
-              modules={[Pagination]}
-              spaceBetween={0}
-              slidesPerView={1}
-              pagination={{ clickable: true }}
-              loop
-              className="product-card-swiper w-full h-full"
-            >
-              {optimizedImages.map((img, idx) => (
-                <SwiperSlide key={idx}>
-                  <img
-                    src={img}
-                    alt={`${name} - ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          ) : (
-            <img
-              src={optimizedImages[0]}
-              alt={name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          )}
+          <img
+            src={primaryImage}
+            alt={name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
         {isSoldOut && (
           <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold rounded-full h-8 w-8 flex items-center justify-center shadow-md z-10 pointer-events-none">

@@ -30,14 +30,6 @@ const Testimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const current = testimonials[currentIndex];
 
-  const goToPrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
-  };
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
-  };
-
   const goToIndex = (index) => {
     setCurrentIndex(index);
   };
