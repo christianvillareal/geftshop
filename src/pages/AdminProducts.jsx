@@ -5,6 +5,7 @@ import { Pagination } from 'swiper/modules';
 import { fetchProducts, deleteProduct } from '../services/api';
 import { Dress } from '../assets';
 import AlertModal from '../components/AlertModal';
+import { optimizeCloudinaryUrl } from '../utils/imageOptimizer';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -29,7 +30,6 @@ const AdminProducts = () => {
   const loadProducts = async () => {
     try {
       const data = await fetchProducts();
-      // Sort: in-stock first, sold-out last; within same group, newer first (higher id)
       const sorted = [...data].sort((a, b) => {
         if (a.stock > 0 && b.stock === 0) return -1;
         if (a.stock === 0 && b.stock > 0) return 1;
@@ -86,35 +86,31 @@ const AdminProducts = () => {
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Products</h1>
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-  {/* On mobile: 2 columns, on md and up: flex row with justify-between */}
-  <div className="grid grid-cols-2 gap-3 md:flex md:justify-between md:items-end">
-    {/* Sizes dropdown */}
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Sizes</label>
-      <select
-        value={sizeFilter}
-        onChange={(e) => setSizeFilter(e.target.value)}
-        className="w-full border border-gray-300 rounded-md px-3 py-2"
-      >
-        <option value="">All Sizes</option>
-        <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option>
-        <option>2XL</option><option>3XL</option><option>4XL</option>
-      </select>
-    </div>
-
-    {/* Search input – on desktop it will be pushed right by flex justify-between */}
-    <div className="md:w-64">
-      <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-      <input
-        type="text"
-        placeholder="Search Dress"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full border border-gray-300 rounded-md px-3 py-2"
-      />
-    </div>
-  </div>
-</div>
+        <div className="grid grid-cols-2 gap-3 md:flex md:justify-between md:items-end">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sizes</label>
+            <select
+              value={sizeFilter}
+              onChange={(e) => setSizeFilter(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="">All Sizes</option>
+              <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option>
+              <option>2XL</option><option>3XL</option><option>4XL</option>
+            </select>
+          </div>
+          <div className="md:w-64">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <input
+              type="text"
+              placeholder="Search Dress"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+            />
+          </div>
+        </div>
+      </div>
 
       {filteredProducts.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
@@ -128,6 +124,9 @@ const AdminProducts = () => {
               const images = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls : [Dress];
               const hasMultiple = images.length > 1;
               const isSoldOut = Number(product.stock) === 0;
+              // Optimize thumbnails for product list (150px width)
+              const optimizedImages = images.map(img => optimizeCloudinaryUrl(img, 300));
+              
               return (
                 <div key={product.id} className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
                   <div className="relative mb-4">
@@ -141,14 +140,24 @@ const AdminProducts = () => {
                           loop
                           className="product-card-swiper w-full h-full"
                         >
-                          {images.map((img, idx) => (
+                          {optimizedImages.map((img, idx) => (
                             <SwiperSlide key={idx}>
-                              <img src={img} alt={`${product.name} - ${idx + 1}`} className="w-full h-full object-cover" />
+                              <img
+                                src={img}
+                                alt={`${product.name} - ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
                             </SwiperSlide>
                           ))}
                         </Swiper>
                       ) : (
-                        <img src={images[0]} alt={product.name} className="w-full h-full object-cover" />
+                        <img
+                          src={optimizedImages[0]}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
                       )}
                     </div>
                     {isSoldOut && (
