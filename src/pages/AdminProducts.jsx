@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
@@ -27,7 +27,7 @@ const AdminProducts = () => {
   };
   const closeAlert = () => setAlert({ open: false, title: '', message: '', type: 'info' });
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       const data = await fetchProducts();
       const sorted = [...data].sort((a, b) => {
@@ -42,11 +42,11 @@ const AdminProducts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadProducts();
-  }, [location.key, refreshKey]);
+  }, [loadProducts, location.key, refreshKey]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {

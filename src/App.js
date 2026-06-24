@@ -1,5 +1,5 @@
-import { HashRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react'; // missing imports
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
